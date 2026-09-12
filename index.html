@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishShield • Hands-on Phishing Defense Labs</title>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono & Playfair Display for realistic certificate -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Font Awesome Vector Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Ambient Floating Gradient Orbs -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Top Minimal Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-logo" id="brandLogoHomeBtn" title="Go to Lab Hub">
+        <span class="logo-shield"><i class="fa-solid fa-shield-halved"></i></span>
+        <span class="brand-name">Phish<span class="gradient-text">Shield</span></span>
+      </div>
+      <button class="nav-hub-btn" id="navHubBtn" title="View all labs">
+        <i class="fa-solid fa-grid-2"></i> <span>Lab Hub</span>
+      </button>
+    </div>
+
+    <div class="header-right">
+      <!-- Trainee Name Pill -->
+      <div class="user-name-pill" id="userNamePill" title="Click to change your certificate name">
+        <i class="fa-solid fa-user-shield"></i>
+        <span id="headerUserName">Security Trainee</span>
+        <i class="fa-solid fa-pen name-edit-icon"></i>
+      </div>
+
+      <!-- Lab Progress Pill -->
+      <div class="stat-pill" title="Completed Labs">
+        <i class="fa-solid fa-circle-check completed-icon"></i>
+        <span id="headerCompletedCount">0/6</span>
+      </div>
+
+      <!-- Streak Pill -->
+      <div class="stat-pill" title="Current Correct Streak">
+        <i class="fa-solid fa-fire fire-icon"></i>
+        <span id="headerStreakCount">0</span>
+      </div>
+
+      <!-- Sound Toggle -->
+      <button class="icon-control-btn" id="soundToggleBtn" aria-label="Toggle Sound" title="Sound Effects">
+        <i class="fa-solid fa-volume-high" id="soundIcon"></i>
+      </button>
+
+      <!-- New Student / Reset Session -->
+      <button class="icon-control-btn" id="resetSessionBtn" aria-label="New Student / Reset Session" title="Reset Session for New Student">
+        <i class="fa-solid fa-arrow-rotate-left"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       VIEW 1: HOME LAB HUB (Card Grid with Completed Status)
+       ============================================================ -->
+  <main class="home-view" id="homeView">
+    <section class="hub-hero">
+      <div class="hero-tag">
+        <span class="pulse-dot"></span> CYBERSECURITY RANGE
+      </div>
+      <h1 class="hero-title">Hands-on Phishing <span class="gradient-text">Defense Labs</span></h1>
+      <p class="hero-subtitle">Interactive attack simulations with realistic telemetry. Complete each lab to earn your verified Certificate of Achievement.</p>
+      
+      <!-- Overall Progress Tracker -->
+      <div class="hub-progress-card">
+        <div class="hub-progress-header">
+          <span>Overall Lab Mastery</span>
+          <strong id="hubProgressPct">0% Completed (0/6)</strong>
+        </div>
+        <div class="hub-progress-bar">
+          <div class="hub-progress-fill" id="hubProgressFill"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final Mastery Graduation Banner (ONLY VISIBLE WHEN ALL 6 LABS ARE COMPLETED) -->
+    <div class="final-mastery-banner hidden" id="finalMasteryBanner">
+      <div class="mastery-banner-left">
+        <div class="mastery-trophy-icon">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="mastery-text-group">
+          <div class="mastery-badge-tag"><i class="fa-solid fa-award"></i> ALL 6 RANGE LABS COMPLETED</div>
+          <h3 class="mastery-banner-title">Master Cyber Defense Accreditation Ready</h3>
+          <p class="mastery-banner-desc">You have successfully mitigated threat vectors across all 6 hands-on labs! Review your comprehensive 60-scenario threat analysis report and download your Master Certificate.</p>
+        </div>
+      </div>
+      <button class="action-btn-gold" id="viewFinalReportBtn">
+        <i class="fa-solid fa-chart-column"></i>
+        <span>View Final Report &amp; Master Certificate</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- The 6 Hands-on Labs Grid -->
+    <section class="labs-grid" id="labsGrid">
+      <!-- Rendered dynamically by app.js -->
+    </section>
+  </main>
+
+  <!-- ============================================================
+       VIEW 2: ACTIVE LAB SIMULATION STAGE
+       ============================================================ -->
+  <main class="sim-view hidden" id="simView">
+    <!-- Lab Session Top Bar -->
+    <div class="session-meta-bar">
+      <div class="meta-left">
+        <button class="back-hub-btn" id="backToHubBtn">
+          <i class="fa-solid fa-arrow-left"></i> <span>All Labs</span>
+        </button>
+        <span class="scenario-category-pill" id="scenarioCategory">Email Security</span>
+        <span class="scenario-diff-pill" id="scenarioDifficulty">Medium</span>
+      </div>
+
+      <div class="meta-progress">
+        <div class="progress-labels">
+          <span>Scenario <strong id="currentQIndex">1</strong> of <strong id="totalQCount">10</strong></span>
+          <span class="random-badge"><i class="fa-solid fa-dice"></i> 10 Randomized Qs</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Interactive Simulation Card -->
+    <div class="simulation-stage-card" id="simulationStage">
+      <div class="stage-header">
+        <h2 class="stage-title" id="scenarioTitle">Loading Scenario...</h2>
+        <div class="stage-instruction" id="stageInstruction">Inspect the scenario details below:</div>
+      </div>
+
+      <!-- Dynamic Viewport Mockup (Email, Sender, URL, Hover, Login, QR) -->
+      <div class="stage-viewport" id="stageViewport"></div>
+
+      <!-- Shuffled Choices / Action Buttons -->
+      <div class="action-dock" id="actionDock"></div>
+    </div>
+
+    <!-- Bottom-Left Browser Status Bar Simulation (for Hover Lab) -->
+    <div class="browser-hover-statusbar" id="browserStatusBar">
+      <i class="fa-solid fa-globe"></i>
+      <span id="statusBarTargetUrl">https://...</span>
+    </div>
+
+    <!-- Instant Feedback Drawer -->
+    <div class="feedback-overlay" id="feedbackOverlay">
+      <div class="feedback-card" id="feedbackCard">
+        <div class="feedback-header">
+          <div class="result-badge" id="resultBadge">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="resultTitle">Correct Analysis</span>
+          </div>
+          <span class="xp-gain" id="xpGain">+100 XP</span>
+        </div>
+
+        <div class="feedback-body">
+          <p class="feedback-explanation" id="feedbackText">Explanation text goes here.</p>
+          <div class="flags-container" id="flagsContainer">
+            <h4 class="flags-title"><i class="fa-solid fa-triangle-exclamation"></i> Key Indicators & Red Flags:</h4>
+            <ul class="flags-list" id="flagsList"></ul>
+          </div>
+        </div>
+
+        <div class="feedback-actions">
+          <button class="next-btn" id="nextQuestionBtn">
+            <span>Next Scenario</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================================
+       MODAL: USER NAME PROMPT (First visit or edit)
+       ============================================================ -->
+  <div class="modal-overlay" id="nameModalOverlay">
+    <div class="modal-card name-modal-card">
+      <div class="modal-icon-badge">
+        <i class="fa-solid fa-id-card-clip"></i>
+      </div>
+      <h2 class="modal-title">Welcome to PhishShield</h2>
+      <p class="modal-subtitle">Enter your full name to personalize your verified Cybersecurity Certificate of Achievement:</p>
+      
+      <form id="nameForm" class="name-form">
+        <div class="input-group">
+          <i class="fa-solid fa-user input-icon"></i>
+          <input type="text" id="nameInput" placeholder="Enter your full name (e.g. Alex Rivera)" maxlength="40" required autocomplete="off" spellcheck="false" />
+        </div>
+        <button type="submit" class="action-btn-primary">
+          <span>Enter Cyber Range</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: REALISTIC CELEBRATION & DOWNLOADABLE CERTIFICATE
+       ============================================================ -->
+  <div class="certificate-modal-overlay" id="certificateModalOverlay">
+    <div class="certificate-modal-card">
+      <div class="cert-modal-header">
+        <div class="celebration-tag">
+          <i class="fa-solid fa-award"></i> CRITERIA MET • 8+/10 REQUIRED
+        </div>
+        <h2 class="cert-modal-title">🎉 Congratulations, <span id="certRecipientName">Student</span>!</h2>
+        <p class="cert-modal-subtitle" id="certModalSubtitle">You scored 9/10, surpassing the required 8/10 benchmark to certify this lab.</p>
+
+        <!-- Dynamic Lab Score Card -->
+        <div class="celebration-score-grid">
+          <div class="score-stat-box">
+            <span class="score-stat-label">Final Score</span>
+            <strong class="score-stat-val text-green" id="certScoreDisplay">9 / 10</strong>
+          </div>
+          <div class="score-stat-box">
+            <span class="score-stat-label">Accuracy</span>
+            <strong class="score-stat-val text-blue" id="certAccuracyDisplay">90%</strong>
+          </div>
+          <div class="score-stat-box">
+            <span class="score-stat-label">Evaluation Status</span>
+            <strong class="score-stat-val text-gold"><i class="fa-solid fa-shield-check"></i> PASSED &amp; CERTIFIED</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Interactive Certificate Preview -->
+      <div class="certificate-frame-container" id="certificateFrameWrap">
+        <!-- Visual HTML Preview -->
+        <div class="realistic-certificate" id="visualCert">
+          <div class="cert-border-outer">
+            <div class="cert-border-inner">
+              <!-- Corner Ornaments -->
+              <div class="corner-ornament c-tl"></div>
+              <div class="corner-ornament c-tr"></div>
+              <div class="corner-ornament c-bl"></div>
+              <div class="corner-ornament c-br"></div>
+
+              <!-- Official Header Badge -->
+              <div class="cert-official-pill">
+                <i class="fa-solid fa-shield-halved"></i> OFFICIAL CYBER RANGE RECORD • BENCHMARK v2.4
+              </div>
+
+              <div class="cert-org-title">PHISHSHIELD CYBER DEFENSE SIMULATION LABS</div>
+              <h1 class="cert-main-heading">CERTIFICATE OF LAB COMPLETION</h1>
+              <p class="cert-presentation-text">This credential is authenticated and awarded to</p>
+              
+              <div class="cert-recipient-name" id="certPreviewName">Student Trainee</div>
+              
+              <p class="cert-achievement-text">for demonstrating operational competency and meeting the 8/10 passing benchmark in:</p>
+              <div class="cert-lab-name" id="certPreviewLabTitle">Phishing vs Legitimate Email</div>
+
+              <!-- Official Score & Competency Tags -->
+              <div class="cert-score-tag-box">
+                <span class="cert-score-chip" id="certScoreChip"><i class="fa-solid fa-circle-check"></i> SCORE: 9/10 (PASSING CRITERIA: 8/10 MET)</span>
+              </div>
+              
+              <div class="cert-competencies">
+                <span>Threat Telemetry</span> • <span>Domain Verification</span> • <span>Attack Vector Mitigation</span>
+              </div>
+
+              <!-- Footer Section: Official Authorities & Institutional Seal -->
+              <div class="cert-footer">
+                <div class="cert-signature-block">
+                  <div class="signature-line cert-system-stamp">PhishShield Automated Evaluation Protocol</div>
+                  <div class="signature-role">Cyber Defense Lab Evaluator</div>
+                  <div class="signature-subrole">Interactive Cyber Range System</div>
+                </div>
+
+                <div class="cert-seal-block">
+                  <div class="cert-golden-seal">
+                    <i class="fa-solid fa-ribbon ribbon-icon"></i>
+                    <div class="seal-inner-circle">
+                      <i class="fa-solid fa-shield-check"></i>
+                      <span>OFFICIAL RECORD</span>
+                    </div>
+                  </div>
+                  <div class="cert-id-tag" id="certPreviewId">ID: CERT-PS-2026-94812</div>
+                  <div class="cert-sec-tag">CRITERIA: 8+/10 MET</div>
+                </div>
+
+                <div class="cert-signature-block">
+                  <div class="signature-line cert-system-stamp">Security Awareness &amp; Training Division</div>
+                  <div class="signature-role">Simulation Verification Authority</div>
+                  <div class="signature-subrole">Accredited Cyber Range Operations</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Certificate Actions -->
+      <div class="cert-actions-bar">
+        <button class="action-btn-gold hidden" id="certModalFinalReportBtn">
+          <i class="fa-solid fa-trophy"></i>
+          <span>View Final Graduation Report &amp; Master Certificate</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <button class="action-btn-primary download-cert-btn" id="downloadCertBtn">
+          <i class="fa-solid fa-file-arrow-down"></i> Download Official Certificate (.PNG)
+        </button>
+        <button class="action-btn-secondary" id="certBackToHubBtn">
+          <i class="fa-solid fa-grid-2"></i> Return to Lab Hub
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: EVALUATION BENCHMARK NOT MET (< 8/10 SCORE)
+       ============================================================ -->
+  <div class="modal-overlay" id="evaluationFailModalOverlay">
+    <div class="modal-card fail-modal-card">
+      <div class="modal-icon-badge fail-badge">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h2 class="modal-title">Lab Benchmark Not Met</h2>
+      <p class="modal-subtitle">A minimum passing score of <strong>8 out of 10</strong> is required to mitigate breach conditions and earn your Certificate of Completion.</p>
+
+      <div class="fail-score-card">
+        <div class="fail-score-num" id="failScoreNum">6 / 10</div>
+        <div class="fail-score-pct" id="failScorePct">60% Accuracy</div>
+        <div class="fail-criteria-pill"><i class="fa-solid fa-circle-exclamation"></i> Criteria: Minimum 8/10 Required (Lab Not Completed)</div>
+      </div>
+
+      <p class="fail-advice-text">
+        Review the red flags and security indicators from your attempt, then retry with a fresh randomized set of 10 questions.
+      </p>
+
+      <div class="fail-buttons">
+        <button class="action-btn-primary" id="retryLabBtn">
+          <i class="fa-solid fa-rotate-right"></i> Retry Lab (10 New Questions)
+        </button>
+        <button class="action-btn-secondary" id="failBackToHubBtn">
+          <i class="fa-solid fa-grid-2"></i> Return to Lab Hub
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: FINAL 6-LAB MASTERY REPORT & MASTER CERTIFICATE
+       ============================================================ -->
+  <div class="final-report-modal-overlay" id="finalReportModalOverlay">
+    <div class="final-report-modal-card">
+      <!-- Report Header -->
+      <div class="final-report-header">
+        <div class="master-badge-pill">
+          <i class="fa-solid fa-shield-halved"></i> MASTER DEFENDER ACCREDITATION • 60/60 RANGE SCENARIOS
+        </div>
+        <h2 class="final-report-title">🏆 Cyber Defense Master Evaluation Report</h2>
+        <p class="final-report-subtitle">
+          Official threat mitigation telemetry and domain analysis across all 6 specialized hands-on cyber range labs for <strong id="reportStudentName">Student Trainee</strong>.
+        </p>
+      </div>
+
+      <!-- Cumulative Score Summary -->
+      <div class="final-stats-summary-grid">
+        <div class="final-stat-box stat-primary">
+          <span class="final-stat-label">Cumulative Score</span>
+          <div class="final-stat-num text-green" id="reportCumulativeScore">58 / 60</div>
+          <span class="final-stat-sub" id="reportQuestionsAnalyzed">60 Randomized Scenarios</span>
+        </div>
+        <div class="final-stat-box stat-success">
+          <span class="final-stat-label">Overall Defense Accuracy</span>
+          <div class="final-stat-num text-blue" id="reportOverallAccuracy">96.7%</div>
+          <span class="final-stat-sub">Benchmark: 80%+ Required</span>
+        </div>
+        <div class="final-stat-box stat-tier">
+          <span class="final-stat-label">Readiness Tier</span>
+          <div class="final-stat-num text-gold" id="reportReadinessTier">Tier 1: Master Threat Hunter</div>
+          <span class="final-stat-sub"><i class="fa-solid fa-circle-check"></i> Enterprise Certified</span>
+        </div>
+      </div>
+
+      <!-- Domain by Domain Breakdown (6 Labs) -->
+      <div class="domain-analysis-section">
+        <h3 class="section-title"><i class="fa-solid fa-chart-simple"></i> Domain Competency Telemetry (6 Labs Breakdown)</h3>
+        <div class="domain-cards-grid" id="reportDomainGrid">
+          <!-- Dynamically populated by app.js -->
+        </div>
+      </div>
+
+      <!-- Security Strengths & Mitigation Insights -->
+      <div class="report-insights-card">
+        <h4 class="insights-title"><i class="fa-solid fa-shield-virus"></i> Strategic Defense Assessment</h4>
+        <div class="insights-grid">
+          <div class="insight-item">
+            <strong class="insight-label text-green"><i class="fa-solid fa-circle-check"></i> Key Mitigation Strengths:</strong>
+            <p id="reportStrengthText">Demonstrated superior vigilance against display name spoofing, cousin domains, and hidden hyperlink redirect traps.</p>
+          </div>
+          <div class="insight-item">
+            <strong class="insight-label text-blue"><i class="fa-solid fa-lightbulb"></i> Recommended Best Practices:</strong>
+            <p id="reportTakeawayText">Always inspect the apex domain before entering credentials, verify SSL certificate provenance, and physically isolate unexpected QR code scans.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master Certificate Preview Section -->
+      <div class="master-cert-preview-section">
+        <div class="master-cert-tagline">
+          <i class="fa-solid fa-award"></i> OFFICIAL RANGE MASTER CREDENTIAL
+        </div>
+        <h3 class="section-title">Master Certificate of Cyber Defense Excellence</h3>
+        <p class="section-desc">Authenticated institutional credential recognizing successful mitigation of threats across all 6 simulation range categories.</p>
+
+        <div class="certificate-frame-container" id="masterCertFrameWrap">
+          <div class="realistic-certificate master-certificate-theme" id="visualMasterCert">
+            <div class="cert-border-outer master-border-outer">
+              <div class="cert-border-inner master-border-inner">
+                <!-- Ornaments -->
+                <div class="corner-ornament c-tl"></div>
+                <div class="corner-ornament c-tr"></div>
+                <div class="corner-ornament c-bl"></div>
+                <div class="corner-ornament c-br"></div>
+
+                <div class="cert-official-pill master-pill">
+                  <i class="fa-solid fa-shield-halved"></i> OFFICIAL MASTER RANGE RECORD • COMPREHENSIVE BENCHMARK v2.4
+                </div>
+
+                <div class="cert-org-title">PHISHSHIELD CYBER DEFENSE SIMULATION RANGE</div>
+                <h1 class="cert-main-heading master-heading">MASTER CERTIFICATE OF DEFENSE EXCELLENCE</h1>
+                <p class="cert-presentation-text">This master credential is authenticated and awarded with highest honors to</p>
+
+                <div class="cert-recipient-name" id="masterCertRecipientName">Student Trainee</div>
+
+                <p class="cert-achievement-text">for demonstrating comprehensive operational mastery across all 6 hands-on Cyber Range categories:</p>
+
+                <div class="master-competency-chips">
+                  <span>Phishing Emails</span> • <span>Sender Spoofing</span> • <span>URL Analysis</span> • <span>Hover Telemetry</span> • <span>Fake Logins</span> • <span>Quishing Defense</span>
+                </div>
+
+                <div class="cert-score-tag-box">
+                  <span class="cert-score-chip master-score-chip" id="masterCertScoreChip">
+                    <i class="fa-solid fa-circle-check"></i> CUMULATIVE SCORE: 58/60 (96.7% ACCURACY) • ALL 6 LABS MASTERED
+                  </span>
+                </div>
+
+                <!-- Master Certificate Footer -->
+                <div class="cert-footer">
+                  <div class="cert-signature-block">
+                    <div class="signature-line cert-system-stamp">PhishShield Automated Evaluation Protocol</div>
+                    <div class="signature-role">Cyber Defense Lab Evaluator</div>
+                    <div class="signature-subrole">Interactive Cyber Range System</div>
+                  </div>
+
+                  <div class="cert-seal-block">
+                    <div class="cert-golden-seal master-gold-seal">
+                      <i class="fa-solid fa-ribbon ribbon-icon"></i>
+                      <div class="seal-inner-circle">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>MASTER RECORD</span>
+                      </div>
+                    </div>
+                    <div class="cert-id-tag" id="masterCertId">ID: CERT-PS-MASTER-2026-X81A</div>
+                    <div class="cert-sec-tag">ALL 6 DOMAINS VERIFIED</div>
+                  </div>
+
+                  <div class="cert-signature-block">
+                    <div class="signature-line cert-system-stamp">Security Awareness &amp; Training Division</div>
+                    <div class="signature-role">Simulation Verification Authority</div>
+                    <div class="signature-subrole">Accredited Cyber Range Operations</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="final-report-actions-bar">
+        <button class="action-btn-gold download-master-cert-btn" id="downloadMasterCertBtn">
+          <i class="fa-solid fa-file-arrow-down"></i> Download Master Certificate (.PNG)
+        </button>
+        <button class="action-btn-secondary" id="finalReportBackToHubBtn">
+          <i class="fa-solid fa-grid-2"></i> Return to Lab Hub
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden High-Res Canvas for Generating Crisp 1200x850 Downloadable Certificate PNG -->
+  <canvas id="hiddenCertCanvas" width="1200" height="850" style="display: none;"></canvas>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Load Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
