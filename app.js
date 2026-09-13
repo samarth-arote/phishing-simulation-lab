@@ -24,7 +24,8 @@ const state = {
   correctInSession: 0,
   soundEnabled: true,
   currentScenario: null,
-  answered: false
+  answered: false,
+  qrScanned: false
 };
 
 // Sound Synthesizer (Web Audio API)
@@ -92,6 +93,32 @@ class SoundFx {
 
   click() {
     this.playTone(480, 'sine', 0.05, 0.08);
+  }
+
+  scan() {
+    if (!state.soundEnabled) return;
+    this.init();
+    try {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.3);
+    } catch (e) {}
+  }
+
+  scanSuccess() {
+    if (!state.soundEnabled) return;
+    this.init();
+    setTimeout(() => this.playTone(880, 'sine', 0.08, 0.12), 0);
+    setTimeout(() => this.playTone(1760, 'triangle', 0.16, 0.16), 70);
   }
 }
 
@@ -181,6 +208,7 @@ function resetSession() {
   state.correctInSession = 0;
   state.currentScenario = null;
   state.answered = false;
+  state.qrScanned = false;
 
   const nameInput = document.getElementById('nameInput');
   if (nameInput) {
@@ -585,38 +613,217 @@ function renderLoginViewport(container, q) {
   `;
 }
 
-// 6. QR Quishing Viewport
+// 6. QR Quishing Viewport with Real Scannable QR & Optical Scanning Simulation
 function renderQrViewport(container, q) {
-  const seed = q.id.charCodeAt(q.id.length - 1) * 31;
-  const qrSvg = generateQrSvg(seed);
+  state.qrScanned = false;
+
+  // Derive realistic context badge
+  let badgeIcon = 'fa-qrcode';
+  let badgeText = 'Physical / Digital Item';
+  const cLower = (q.context || '').toLowerCase();
+  if (cLower.includes('ev') || cLower.includes('charg')) {
+    badgeIcon = 'fa-charging-station';
+    badgeText = 'EV Charging Stall Terminal';
+  } else if (cLower.includes('parking') || cLower.includes('meter')) {
+    badgeIcon = 'fa-square-parking';
+    badgeText = 'Municipal Parking Meter Decal';
+  } else if (cLower.includes('bistro') || cLower.includes('menu') || cLower.includes('restaurant')) {
+    badgeIcon = 'fa-utensils';
+    badgeText = 'Restaurant Table Menu Placard';
+  } else if (cLower.includes('airline') || cLower.includes('flight') || cLower.includes('airport')) {
+    badgeIcon = 'fa-plane-departure';
+    badgeText = 'Airport / In-Flight Media Notice';
+  } else if (cLower.includes('postal') || cLower.includes('letter') || cLower.includes('irs') || cLower.includes('usps') || cLower.includes('door')) {
+    badgeIcon = 'fa-envelope-open-text';
+    badgeText = 'Physical Postal Letter / Delivery Slip';
+  } else if (cLower.includes('hotel') || cLower.includes('marriott') || cLower.includes('room')) {
+    badgeIcon = 'fa-hotel';
+    badgeText = 'Hotel Guest Wi-Fi Display';
+  } else if (cLower.includes('coffee') || cLower.includes('starbucks') || cLower.includes('loyalty')) {
+    badgeIcon = 'fa-mug-hot';
+    badgeText = 'Retail Counter Loyalty Promotion';
+  } else if (cLower.includes('conference') || cLower.includes('badge')) {
+    badgeIcon = 'fa-id-badge';
+    badgeText = 'Conference Attendee Lanyard Pass';
+  } else if (cLower.includes('bike') || cLower.includes('bicycle')) {
+    badgeIcon = 'fa-bicycle';
+    badgeText = 'Urban Bikeshare Rental Station';
+  } else if (cLower.includes('email') || cLower.includes('memo') || cLower.includes('hr')) {
+    badgeIcon = 'fa-envelope';
+    badgeText = 'Corporate Memo / Internal Announcement';
+  }
 
   container.innerHTML = `
     <div class="qr-scanner-mockup">
-      <p style="font-size: 0.88rem; color: #475569; text-align: center; max-width: 600px;">${q.context}</p>
-      
-      <div class="qr-viewfinder-frame">
-        <div class="viewfinder-corner tl"></div>
-        <div class="viewfinder-corner tr"></div>
-        <div class="viewfinder-corner bl"></div>
-        <div class="viewfinder-corner br"></div>
-        <div class="laser-scanline"></div>
-        <div class="qr-code-svg-wrap">
-          ${qrSvg}
+      <div class="qr-context-card">
+        <div class="qr-context-badge">
+          <i class="fa-solid ${badgeIcon}"></i> <span>${badgeText}</span>
         </div>
+        <p class="qr-context-description">${q.context}</p>
       </div>
 
-      <div class="qr-telemetry-result">
-        <div class="telemetry-title"><i class="fa-solid fa-satellite-dish"></i> Decoded URL Telemetry</div>
-        <div class="telemetry-url">${q.scannedUrl}</div>
+      <div class="qr-viewfinder-wrapper">
+        <div class="qr-viewfinder-frame" id="qrViewfinderFrame" title="Click or tap to scan barcode">
+          <div class="viewfinder-corner tl"></div>
+          <div class="viewfinder-corner tr"></div>
+          <div class="viewfinder-corner bl"></div>
+          <div class="viewfinder-corner br"></div>
+          <div class="laser-scanline" id="qrLaserScanline"></div>
+          <div class="qr-code-canvas-wrap" id="qrCodeCanvasWrap">
+            <!-- Scannable QR code generated here -->
+          </div>
+          <div class="viewfinder-overlay-hint" id="viewfinderOverlayHint">
+            <i class="fa-solid fa-camera"></i>
+            <span>Tap to Scan</span>
+          </div>
+        </div>
+
+        <button class="scan-simulate-btn" id="simulateScanBtn" type="button">
+          <i class="fa-solid fa-camera-viewfinder"></i>
+          <span class="scan-btn-label">Tap to Scan QR & Extract Destination</span>
+        </button>
+      </div>
+
+      <div class="qr-telemetry-result is-locked" id="qrTelemetryResult">
+        <div class="telemetry-locked-view">
+          <i class="fa-solid fa-lock-keyhole telemetry-lock-icon"></i>
+          <div class="telemetry-locked-info">
+            <span class="telemetry-locked-title">URL Telemetry Hidden</span>
+            <span class="telemetry-locked-sub">Scan the QR code above using the camera simulator to decode and extract the destination URL</span>
+          </div>
+        </div>
       </div>
     </div>
   `;
+
+  // Render Real Scannable QR code using QRCode library
+  const wrap = document.getElementById('qrCodeCanvasWrap');
+  if (wrap) {
+    wrap.innerHTML = '';
+    try {
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(wrap, {
+          text: q.scannedUrl,
+          width: 170,
+          height: 170,
+          colorDark: "#090d16",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } else {
+        const seed = q.id.charCodeAt(q.id.length - 1) * 31;
+        wrap.innerHTML = generateQrSvg(seed);
+      }
+    } catch (err) {
+      console.warn('QRCode generation fallback:', err);
+      const seed = q.id.charCodeAt(q.id.length - 1) * 31;
+      wrap.innerHTML = generateQrSvg(seed);
+    }
+  }
+
+  // Handle Scanning Simulation
+  const scanBtn = document.getElementById('simulateScanBtn');
+  const frame = document.getElementById('qrViewfinderFrame');
+  const laser = document.getElementById('qrLaserScanline');
+  const hint = document.getElementById('viewfinderOverlayHint');
+  const telemetry = document.getElementById('qrTelemetryResult');
+
+  function triggerScanSimulation() {
+    if (state.qrScanned) return;
+
+    sounds.scan();
+    if (scanBtn) {
+      scanBtn.disabled = true;
+      scanBtn.classList.add('is-scanning');
+      scanBtn.innerHTML = `
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span class="scan-btn-label">Optical Sensors Decoding QR Matrix...</span>
+      `;
+    }
+    if (frame) frame.classList.add('scanning-active');
+    if (laser) laser.classList.add('laser-fast');
+    if (hint) hint.style.opacity = '0';
+
+    setTimeout(() => {
+      state.qrScanned = true;
+      sounds.scanSuccess();
+
+      if (frame) frame.classList.remove('scanning-active');
+      if (laser) laser.classList.remove('laser-fast');
+
+      if (scanBtn) {
+        scanBtn.classList.remove('is-scanning');
+        scanBtn.classList.add('is-done');
+        scanBtn.innerHTML = `
+          <i class="fa-solid fa-circle-check"></i>
+          <span class="scan-btn-label">QR Decoded & Extracted Successfully</span>
+        `;
+      }
+
+      // Check protocol
+      const isInsecure = q.scannedUrl.startsWith('http://');
+      const protoBadge = isInsecure
+        ? `<span class="url-badge-tag insecure-tag"><i class="fa-solid fa-unlock"></i> HTTP (Insecure)</span>`
+        : `<span class="url-badge-tag secure-tag"><i class="fa-solid fa-lock"></i> HTTPS (TLS Encrypted)</span>`;
+
+      if (telemetry) {
+        telemetry.className = 'qr-telemetry-result is-extracted';
+        telemetry.innerHTML = `
+          <div class="telemetry-extracted-header">
+            <div class="telemetry-extracted-title">
+              <i class="fa-solid fa-satellite-dish"></i> DECODED URL TELEMETRY
+            </div>
+            ${protoBadge}
+          </div>
+          <div class="telemetry-extracted-body">
+            <code class="telemetry-url-text">${q.scannedUrl}</code>
+          </div>
+          <div class="telemetry-extracted-footer">
+            <i class="fa-solid fa-magnifying-glass"></i> Telemetry extracted! Review the destination above and select your assessment below.
+          </div>
+        `;
+      }
+
+      // Unlock and render Action Choices
+      renderActionDock(q);
+    }, 850);
+  }
+
+  if (scanBtn) scanBtn.addEventListener('click', triggerScanSimulation);
+  if (frame) frame.addEventListener('click', triggerScanSimulation);
 }
 
 // Render Shuffled Action Choices (Guaranteeing correct answer is not statically first)
 function renderActionDock(q) {
   const dock = document.getElementById('actionDock');
   dock.innerHTML = '';
+
+  // For QR lab: gate choices until user completes the scan simulation
+  if (q.category === 'qr' && !state.qrScanned) {
+    dock.innerHTML = `
+      <div class="qr-dock-locked">
+        <div class="qr-dock-lock-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="qr-dock-lock-info">
+          <h4><i class="fa-solid fa-lock"></i> Threat Analysis Locked</h4>
+          <p>Scan the QR code above using the camera simulator to extract the destination URL before analyzing this scenario.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // If QR is scanned, show guidance banner before choices
+  if (q.category === 'qr' && state.qrScanned) {
+    const promptBanner = document.createElement('div');
+    promptBanner.className = 'qr-unlocked-prompt';
+    promptBanner.innerHTML = `
+      <i class="fa-solid fa-clipboard-check"></i>
+      <span><strong>Destination Extracted:</strong> Based on the physical context and decoded URL above, select your security assessment:</span>
+    `;
+    dock.appendChild(promptBanner);
+  }
 
   if (q.type === 'decision') {
     // Alternate and randomize Safe vs Phishing left/right placement dynamically
